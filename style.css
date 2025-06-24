@@ -1,0 +1,42 @@
+body {
+    font-family: sans-serif;
+}
+
+.rule-cell {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    user-select: none;
+}
+
+.rule-cell:hover {
+    background: rgba(102, 126, 234, 0.3) !important;
+    transform: scale(1.05);
+}
+
+.rule-cell.available {
+    background: rgba(76, 175, 80, 0.3) !important;
+    border: 2px solid #4CAF50 !important;
+    box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+}
+
+.rule-cell.selected {
+    background: rgba(255, 193, 7, 0.4) !important;
+    border: 2px solid #FFC107 !important;
+    font-weight: bold;
+}
+
+.rule-cell.disabled {
+    background: rgba(128, 128, 128, 0.3) !important;
+    color: #999 !important;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.empty-cell {
+    color: #999;
+    font-style: italic;
+}
+
+.current-step {
+    background: rgba(255, 193, 7, 0.3) !important;
+}
