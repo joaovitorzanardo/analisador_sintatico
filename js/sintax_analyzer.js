@@ -1,113 +1,4 @@
-function analisarSentenca() {
-    const inputElement = document.getElementById("inputSentenca");
-    const sentenca = inputElement.value.trim();
-    
-    if (!sentenca) {
-        alert("Por favor, digite uma sentença para análise.");
-        inputElement.focus();
-        return;
-    }
-    
-    console.log("Análise da sentença:", sentenca);
-}
-
-function gerarSentenca() {
-    console.log("Sentença adicionada!");
-}
-
-const grammar = {
-    S: [
-        { production: "a C b", nextStates: ["C"], symbols: ["a"], suffix: ["b"] },
-        { production: "b A", nextStates: ["A"], symbols: ["b"], suffix: [] },
-        { production: "c B c", nextStates: ["B"], symbols: ["c"], suffix: ["c"] }
-    ],
-    A: [
-        { production: "a B", nextStates: ["B"], symbols: ["a"], suffix: [] },
-        { production: "e", nextStates: [], symbols: [], suffix: [] } // epsilon
-    ],
-    B: [
-        { production: "a A c", nextStates: ["A"], symbols: ["a"], suffix: ["c"] },
-        { production: "b C b", nextStates: ["C"], symbols: ["b"], suffix: ["b"] }
-    ],
-    C: [
-        { production: "a A", nextStates: ["A"], symbols: ["a"], suffix: [] },
-        { production: "c A b", nextStates: ["A"], symbols: ["c"], suffix: ["b"] }
-    ],
-    D: [
-        { production: "a B", nextStates: ["B"], symbols: ["a"], suffix: [] },
-        { production: "b A", nextStates: ["A"], symbols: ["b"], suffix: [] },
-        { production: "d A", nextStates: ["A"], symbols: ["d"], suffix: [] }
-    ]
-};
-
-let currentState = 'S';
-let derivationHistory = [];
-let stepCount = 0;
-let visitedStates = new Set(['S']);
-
-function initializeAutomaton() {
-    updateAvailableRules();
-}
-
-function updateAvailableRules() {
-    const allRules = document.querySelectorAll('.rule-cell');
-    
-    allRules.forEach(cell => {
-        cell.classList.remove('available', 'selected');
-        cell.classList.add('disabled');
-    });
-    
-    const currentStateRules = document.querySelectorAll(`[data-state="${currentState}"]`);
-    currentStateRules.forEach(cell => {
-        if (!cell.classList.contains('empty-cell')) {
-            cell.classList.remove('disabled');
-            cell.classList.add('available');
-        }
-    });
-}
-
-function selectRule(element) {
-    if (element.classList.contains('disabled')) {
-        return;
-    }
-    
-    const state = element.dataset.state;
-    const ruleIndex = parseInt(element.dataset.rule);
-    const production = element.dataset.production;
-    
-    if (state !== currentState) {
-        return;
-    }
-    
-    document.querySelectorAll('.rule-cell.selected').forEach(cell => {
-        cell.classList.remove('selected');
-    });
-    
-    element.classList.add('selected');
-    
-    executeRule(state, ruleIndex, production);
-}
-
-function executeRule(state, ruleIndex, production) {
-    const rule = grammar[state][ruleIndex];
-    
-    if (rule.nextStates.length > 0) {
-        currentState = rule.nextStates[0];
-        visitedStates.add(currentState);    
-    }
-    
-    updateAvailableRules();
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.rule-cell').forEach(cell => {
-        cell.addEventListener('click', function() {
-            selectRule(this);
-        });
-    });
-    
-    initializeAutomaton();
-});
+const alphabet = ['a', 'b', 'c', 'd'];
 
 const parsingTable = {
     'S': {
@@ -161,14 +52,22 @@ let inputPointer = 0;
 let steps = [];
 let currentStep = 0;
 let analysisInitiated = false;
+let analysisCompleted = false;
 
 function initializeAnalysis() {
-    if (analysisInitiated) {
+    const inputString = document.getElementById('inputSentenca').value.trim();
+
+    if (!isInputValid(inputString)) {
+        return;
+    }
+   
+    if (analysisInitiated && !analysisCompleted) {
         stepByStepAnalysis();
         return;
     }
+    
     analysisInitiated = true;
-    const inputString = document.getElementById('inputSentenca').value.trim();
+    analysisCompleted = false;
     stack = ['$', 'S'];
     input = inputString + '$';
     inputPointer = 0;
@@ -181,7 +80,6 @@ function initializeAnalysis() {
         input: input.substring(inputPointer),
         action: 'Configuração inicial'
     });
-    console.log("Analise iniciada...");
     updateDisplay();
     stepByStepAnalysis();
 }
@@ -191,11 +89,10 @@ function isTerminal(symbol) {
 }
 
 function stepByStepAnalysis() {
-    console.log("Passo a passo...");
-    if (stack.length <= 1) {
-        return input.substring(inputPointer) === '$';
+    if (analysisCompleted) {
+        return;
     }
-    
+
     const top = stack[stack.length - 1];
     const currentInputChar = input[inputPointer];
     
@@ -210,7 +107,7 @@ function stepByStepAnalysis() {
                 step: currentStep,
                 stack: [...stack],
                 input: input.substring(inputPointer),
-                action: `Match '${top}' - removido da pilha`
+                action: `Lê '${top}' - removido da pilha`
             });
         } else {
             steps.push({
@@ -254,6 +151,15 @@ function stepByStepAnalysis() {
     }
     
     updateDisplay();
+
+    if (stack.length <= 1 && input.substring(inputPointer) === '$') {
+        const row = document.createElement('div');
+        row.innerHTML = `
+            <p>Aceita em ${currentStep} passos</p>
+        `;
+        document.getElementById('analysisTableBody').appendChild(row);
+        analysisCompleted = true;
+    }
     return null;
 }
 
@@ -280,4 +186,30 @@ function updateDisplay() {
     const table = document.getElementById('analysisTable');
     table.scrollTop = table.scrollHeight;
     
+}
+
+function isInputValid(inputString) {
+    if (!inputString || inputString === '') {
+        alert("A sentença não pode ser vazia!")
+        return false;
+    }
+
+    if (![...inputString].every(char => alphabet.includes(char))) {
+        alert("A sentença deve conter apenas os caracteres 'a', 'b', 'c' e 'd'");
+        return false;
+    }
+
+    return true;
+}
+
+function resetAnalysis() {
+    analysisInitiated = false;
+    analysisCompleted = false;
+    stack = [];
+    input = '';
+    inputPointer = 0;
+    steps = [];
+    currentStep = 0;
+    document.getElementById('inputSentenca').value = '';
+    updateDisplay();   
 }
