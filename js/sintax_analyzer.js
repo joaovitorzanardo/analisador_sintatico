@@ -18,7 +18,7 @@ const parsingTable = {
         'c': 'B → ε'
     },
     'C': {
-        'a': 'C → aA',
+        'a': 'C → aD',
         'b': 'C → ε',
         'c': 'C → cAb'
     },
@@ -38,7 +38,7 @@ const productions = {
     'B → aAc': ['a', 'A', 'c'],
     'B → bCb': ['b', 'C', 'b'],
     'B → ε': [],
-    'C → aA': ['a', 'A'],
+    'C → aD': ['a', 'D'],
     'C → cAb': ['c', 'A', 'b'],
     'C → ε': [],
     'D → aB': ['a', 'B'],
