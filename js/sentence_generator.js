@@ -13,7 +13,7 @@ const grammar = {
         { production: "b C b", nextStates: ["C"], symbols: ["b"], suffix: ["b"] }
     ],
     C: [
-        { production: "a A", nextStates: ["A"], symbols: ["a"], suffix: [] },
+        { production: "a D", nextStates: ["D"], symbols: ["a"], suffix: [] },
         { production: "c A b", nextStates: ["A"], symbols: ["c"], suffix: ["b"] }
     ],
     D: [

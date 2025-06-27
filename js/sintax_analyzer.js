@@ -74,13 +74,6 @@ function initializeAnalysis() {
     steps = [];
     currentStep = 0;
     
-    steps.push({
-        step: 0,
-        stack: [...stack],
-        input: input.substring(inputPointer),
-        action: 'Configuração inicial'
-    });
-    updateDisplay();
     stepByStepAnalysis();
 }
 
