@@ -27,6 +27,7 @@ let currentState = 'S';
 let derivationHistory = [];
 let stepCount = 0;
 let visitedStates = new Set(['S']);
+let currentDerivation = [];
 
 function initializeAutomaton() {
     updateAvailableRules();
@@ -74,12 +75,48 @@ function selectRule(element) {
 function executeRule(state, ruleIndex, production) {
     const rule = grammar[state][ruleIndex];
     
-    if (rule.nextStates.length > 0) {
-        currentState = rule.nextStates[0];
-        visitedStates.add(currentState);    
+    currentDerivation.push({ state, ruleIndex });
+    
+    if (rule.nextStates.length === 0) {
+        const sentence = generateSentenceFromDerivation();
+        document.getElementById('inputSentenca').value = sentence;
+        currentDerivation = [];
+        return;
     }
     
+    currentState = rule.nextStates[0];
+    visitedStates.add(currentState);
+    
     updateAvailableRules();
+}
+
+function generateSentenceFromDerivation() {
+    const steps = [];
+    
+    for (const step of currentDerivation) {
+        const rule = grammar[step.state][step.ruleIndex];
+        steps.push({
+            nonTerminal: step.state,
+            production: rule.production.split(' ')
+        });
+    }
+    
+    let current = ['S'];
+    
+    for (const step of steps) {
+        const index = current.findIndex(sym => sym === step.nonTerminal);
+        if (index === -1) continue;
+        
+        current = [
+            ...current.slice(0, index),
+            ...step.production,
+            ...current.slice(index + 1)
+        ];
+    }
+    
+    return current
+        .filter(sym => !grammar[sym])
+        .join('').replace('e', '');
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -91,3 +128,52 @@ document.addEventListener('DOMContentLoaded', function() {
     
     initializeAutomaton();
 });
+
+function generateValidSentence() {
+    currentState = 'S';
+    document.getElementById('inputSentenca').value = '';
+    visitedStates = new Set(['S']);
+    currentDerivation = [];
+
+    function deriveRandom(state) {
+        if (!grammar[state]) return;
+
+        const rules = grammar[state];
+        
+        const shuffledRules = [...rules].sort(() => Math.random() - 0.5);
+        
+        for (const rule of shuffledRules) {
+            const ruleIndex = rules.indexOf(rule);
+            currentDerivation.push({ state, ruleIndex });
+            
+            const currentSentence = generateSentenceFromDerivation();
+            if (currentSentence.length > 15) {
+                currentDerivation.pop(); 
+                continue; 
+            }
+            
+            if (rule.nextStates.length > 0) {
+                deriveRandom(rule.nextStates[0]);
+                const finalSentence = generateSentenceFromDerivation();
+                if (finalSentence.length <= 15) {
+                    return; 
+                }
+            } else {
+                return; 
+            }
+            
+            currentDerivation.pop();
+        }
+    }
+    
+    deriveRandom('S');
+    
+    if (currentDerivation.length === 0 && grammar['S'] && grammar['S'].length > 0) {
+        currentDerivation = [{ state: 'S', ruleIndex: 0 }];
+    }
+    
+    const sentence = generateSentenceFromDerivation();
+    document.getElementById('inputSentenca').value = sentence;
+    
+    return sentence;
+}
