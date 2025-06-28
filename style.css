@@ -40,3 +40,13 @@ body {
 .current-step {
     background: rgba(255, 193, 7, 0.3) !important;
 }
+
+.accepted-step {
+    background: rgb(4,170,109) !important;
+    color:  white !important;
+}
+
+.error-step {
+    background: rgb(204, 0, 0) !important;
+    color:  white !important;
+}

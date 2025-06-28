@@ -65,6 +65,10 @@ function initializeAnalysis() {
         stepByStepAnalysis();
         return;
     }
+
+    if (analysisCompleted) {
+        return;
+    }
     
     analysisInitiated = true;
     analysisCompleted = false;
@@ -74,6 +78,7 @@ function initializeAnalysis() {
     steps = [];
     currentStep = 0;
     
+    updateDisplay();
     stepByStepAnalysis();
 }
 
@@ -96,20 +101,31 @@ function stepByStepAnalysis() {
             stack.pop();
             inputPointer++;
             
-            steps.push({
-                step: currentStep,
-                stack: [...stack],
-                input: input.substring(inputPointer),
-                action: `Lê '${top}' - removido da pilha`
-            });
+            if (stack.length === 1 && input[inputPointer] === '$') {
+                steps.push({
+                    step: currentStep,
+                    stack: [...stack],
+                    input: input.substring(inputPointer),
+                    action: `Aceita em ${currentStep} passos`
+                });
+                analysisCompleted = true;
+            } else {
+                steps.push({
+                    step: currentStep,
+                    stack: [...stack],
+                    input: input.substring(inputPointer),
+                    action: `Lê '${top}' - removido da pilha`
+                });
+            }
         } else {
             steps.push({
                 step: currentStep,
                 stack: [...stack],
                 input: input.substring(inputPointer),
-                action: `ERRO: Esperado '${top}', encontrado '${currentInputChar}'`
+                action: `Erro em ${currentStep} passos`
             });
             updateDisplay();
+            analysisCompleted = true;
             return false;
         }
     } else {
@@ -136,23 +152,15 @@ function stepByStepAnalysis() {
                 step: currentStep,
                 stack: [...stack],
                 input: input.substring(inputPointer),
-                action: `ERRO: Não há produção para ${top} com entrada '${currentInputChar}'`
+                action: `Erro em ${currentStep} passos`
             });
             updateDisplay();
+            analysisCompleted = true;
             return false;
         }
     }
     
     updateDisplay();
-
-    if (stack.length <= 1 && input.substring(inputPointer) === '$') {
-        const row = document.createElement('div');
-        row.innerHTML = `
-            <p>Aceita em ${currentStep} passos</p>
-        `;
-        document.getElementById('analysisTableBody').appendChild(row);
-        analysisCompleted = true;
-    }
     return null;
 }
 
@@ -164,13 +172,21 @@ function updateDisplay() {
         const row = document.createElement('tr');
         if (index === steps.length - 1) {
             row.classList.add('current-step');
+        } 
+        
+        var color = '';
+
+        if (step.action.includes('Aceita')) {
+            color = 'accepted-step';
+        } else if (step.action.includes('Erro')) {
+            color = 'error-step';
         }
         
         row.innerHTML = `
             <td class="step-cell">${step.step}</td>
             <td class="stack-cell">${step.stack.join(' ')}</td>
             <td class="input-cell">${step.input}</td>
-            <td class="action-cell">${step.action}</td>
+            <td class="action-cell ${color}">${step.action}</td>
         `;
         
         tableBody.appendChild(row);
